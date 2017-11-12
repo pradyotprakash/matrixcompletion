@@ -79,4 +79,4 @@ for u in row_array:
 		except:
 			X_hat[u, i] = 0.0
 
-print np.linalg.norm(X - X_hat, ord='fro')
+print np.linalg.norm(X - X_hat, ord='fro')/np.linalg.norm(X, ord='fro')
