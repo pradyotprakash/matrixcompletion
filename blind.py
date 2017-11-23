@@ -2,15 +2,17 @@ import numpy as np
 import math, random, itertools
 
 beta = 2
-lam = 1
+lam = 0.1
 rows, cols = 100, 100
-omega_size = 10
+omega_size = 1000
 
 row_array = range(rows)
 col_array = range(cols)
 
+# X = np.random.rand(rows, cols)
 X = np.array([[i+j for j in col_array] for i in row_array])
-omega = zip([random.randint(0,1) for _ in xrange(omega_size)], [random.randint(0,3) for _ in xrange(omega_size)])
+omega = zip([random.randint(0,rows-1) for _ in xrange(omega_size)], 
+			[random.randint(0,cols-1) for _ in xrange(omega_size)])
 
 M = np.zeros(shape=X.shape)
 N1 = [set() for _ in row_array]
@@ -58,7 +60,7 @@ for u in row_array:
 
 			Suiv[u, i, v] = val/(2*len(temp)*len(temp)-1)
 
-		for j in col_array:
+		for j in Sb2[i][u]:
 			val = 0.0
 			temp = N2ij[i][j]
 			for x in temp:
@@ -70,8 +72,8 @@ for u in row_array:
 		val = 0.0
 		weight = 0.0
 		for v, j in itertools.product(*[Sb1[u][i], Sb2[i][u]]):
-			wvj = math.exp(-lam*min(Suiv[u, i, v], Siuj[i, u, j]))
 			if M[v, j] == 1:
+				wvj = math.exp(-lam*min(Suiv[u, i, v], Siuj[i, u, j]))
 				val += wvj*(X[u, j] + X[v, i] - X[v, j])
 				weight += wvj
 		try:
@@ -80,3 +82,5 @@ for u in row_array:
 			X_hat[u, i] = 0.0
 
 print np.linalg.norm(X - X_hat, ord='fro')/np.linalg.norm(X, ord='fro')
+print X
+print X_hat
