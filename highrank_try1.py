@@ -53,7 +53,7 @@ u0 = math.log(n)
 u1 = math.log(n)
 
 # beta = 1.5625 (by reverse calculating from delta0 = 0.5)
-beta = 0.0001 # (works)
+beta = 0.0001 # (works but totally wrong since beta should be > 1, but even min val 1 gives eta0 such that sampling is impossible)
 
 eps0 = 1 # 0.5 does not work
 
