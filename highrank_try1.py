@@ -5,30 +5,6 @@ def calcPartialDist(a, b, n):
             s += (a[i] - b[i]) ** 2
     return math.sqrt(s)
 
-def generateMatrix(n, N, k, r):
-    Xactual = np.random.rand(n, N)
-
-    # for each subspace
-    for i in range(k):
-        # choose r vectors from N(0, In)
-        basis = [np.random.normal(0, 1, n) for i in range(r)]
-        basis = np.transpose(basis)
-
-        # convert to orthonormal basis ?!?
-
-        # project random points onto subspace to get points on subspace
-
-        basist = np.transpose(basis)
-        # Pb
-        projn = np.dot(np.dot(basis, np.linalg.inv(np.dot(basist, basis) )), basist)
-        # generate random points in the subspace and store in X
-        for j in range(N / k):
-            point = np.random.rand(n)
-            ptprojn = np.dot(projn, point)
-            Xactual[:, (i * k) + j] = ptprojn
-
-    return Xactual
-
 import numpy as np
 import random, math
 
@@ -73,7 +49,8 @@ eta0 = (64 * beta * max(u1 ** 2, u0) / v0) * r * (math.log(n) ** 2)
 # t0 = int( 2 * u0 * u0 * math.log(2 * s0 * l0 * n / delta0) )
 t0 = 10
 
-Xactual = generateMatrix(n, N, k, r)
+Xactual = np.random.rand(n, N)
+
 for j in range(N):
     Xactual[:, j] = Xactual[:, j] / np.linalg.norm(Xactual[:, j])
 X = np.zeros(np.shape(Xactual))
