@@ -285,3 +285,4 @@ for j in range(N):
 
 print np.linalg.norm(Xactual - X, ord='fro')/np.linalg.norm(Xactual, ord='fro')
 # print s1 / s2
+
