@@ -83,7 +83,7 @@ def thinning(neighbour_seed, seed, n, p0):
     # t = No of observed entries of the seed column
     for j in xrange(len(seed)):
         if(seed[j] != 0):
-            t +=1
+            t += 1
     q = t0; # Min t0 observations
     # For every column, draw an independent sample of Y
     for i in xrange(len(neighbour_seed)):
@@ -138,35 +138,36 @@ omega_size = 400000
 
 p0 = omega_size/float(n*N)
 print "p0", p0
-s0 = int(3 * k * math.log(k))
+s0 = int(math.ceil(3 * k * math.log(k)))
 
 # coherence values approx 1 or 2 for the matrix, checked by printing
-u0 = 2
-u1 = 1
+u0 = 2.0
+u1 = 1.0
 
 # beta = 1.5625 #(by reverse calculating from delta0 = 0.5)
-beta = 2.5; # for low delta
+beta = 2.5 # for low delta
 
 eps0 = 1 # 0.5 gives slen = 0
 
 # v0 = 0.33 # (by reverse calculating from value of s0 (ignored delta0) but doesn't work, slen = 0 ?)
-v0 = 1
+v0 = 1.0
 
-delta0 = (n ** (2 - (2 * math.sqrt(beta)))) * math.log(n)
+delta0 = (float(n) ** (2 - (2 * math.sqrt(beta)))) * math.log(n)
 print "delta0", delta0
 
-l0 = (2 * k / (v0 * ( (eps0 / math.sqrt(3)) ** r) ) )
-l0 = int(max(l0, (8 * k * (math.log(s0 / delta0) ) / (n * v0 * ( (eps0 / math.sqrt(3)) ** r) ) ) ))
+l1_ = (2 * float(k) / (v0 * ( (eps0 / math.sqrt(3)) ** r) ) )
+l2_ = (8 * float(k) * (math.log(s0 / delta0) ) / (n * v0 * ( (eps0 / math.sqrt(3)) ** r) ) )
+l0 = math.ceil(max(l1_, l2_))
 # too large, leads to 0 slen
 print "l0", l0
-l0 = 2 # (works!)
+l0 = 2.0 # (works!)
 
 eta0 = (64 * beta * max(u1 ** 2, u0) / v0) * r * (math.log(n) ** 2)
 # too large, leads to 0 seeds
 print "eta0", eta0
-eta0 = n / 2 # on avg, 55 elements in a column..
+eta0 = float(n) / 2 # on avg, 55 elements in a column..
 
-t0 = int( 2 * u0 * u0 * math.log(2 * s0 * l0 * n / delta0) )
+t0 = math.ceil( 2 * u0 * u0 * math.log(2 * s0 * l0 * n / delta0) )
 print "t0", t0 # too large, larger than n
 t0 = min(t0, eta0 / 2)
 
@@ -193,7 +194,7 @@ print "Coherence", calcCoherence(Xactual, n) # not required, only for confirmati
 print "rank of X", np.linalg.matrix_rank(X)
 
 temp = sum(map(np.count_nonzero, X))
-print "avg nz in cols", temp / N
+print "avg nz in cols", float(temp) / N
 
 # get random seeds
 seeds = random.sample(range(N), s0)
@@ -255,10 +256,8 @@ for i in range(s0):
         mat = thinning(mat, s, n, p0) # returning what ? indices or entire sub matrix
 
         # perform subspace completion to rank r
-        tempomegalists = np.where(mat != 0)
-        tempomega = zip(tempomegalists[0], tempomegalists[1])
         mat[mat == 0] = np.nan
-        obj = SoftImpute(max_rank = r)
+        obj = SoftImpute(max_rank = r, verbose=False)
         mat2 = obj.complete(mat)
         subspaces[i] = mat2
 
