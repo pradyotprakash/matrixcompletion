@@ -1,5 +1,6 @@
 import numpy as np
-import math, random, itertools
+import math, random, itertools, time
+from multiprocessing import Pool
 
 random.seed(1)
 
@@ -47,10 +48,8 @@ def f(t):
 	except:
 		return 0.0
 
-m, n = 1000, 1000
+m, n = 100, 10000
 omega_size = 50000
-beta = 2
-lam = 0.5
 
 X = np.array([[i+j for j in range(n)] for i in range(m)])
 rows, cols = X.shape
@@ -71,11 +70,19 @@ for x, y in omega:
 	N2[y].add(x)
 	M[x, y] = 1
 
-all_vals = list(itertools.product(*[row_array, col_array]))
+# betas = range(2, 6)
+# lambdas = map(lambda s:float(s)/10, range(1, 11, 1))
+betas = [2]
+lambdas = [0.5]
 
-from multiprocessing import Pool as ThreadPool 
-pool = ThreadPool(4)
-ret = pool.map(f, all_vals, rows*cols/4)
+for beta in betas:
+	for lam in lambdas:
+		start = time.time()
+		all_vals = itertools.product(*[row_array, col_array])
+		pool = Pool(4)
+		ret = list(pool.imap(f, all_vals, rows*cols/4))
+		del pool
 
-X_hat = np.reshape(np.matrix(ret), newshape=(rows, cols))
-print np.linalg.norm(X - X_hat, ord='fro')/np.linalg.norm(X, ord='fro')
+		X_hat = np.reshape(np.matrix(ret), newshape=(rows, cols))
+		totTime = time.time() - start
+		print beta, lam, totTime, np.linalg.norm(X - X_hat, ord='fro')/np.linalg.norm(X, ord='fro')

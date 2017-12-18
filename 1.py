@@ -19,7 +19,7 @@ def generateMatrix(n, N, k, r, bases):
         # project random points onto subspace to get points on subspace
         basist = np.transpose(basis)
         # Pb
-        projn = np.dot(np.dot(basis, np.linalg.inv(np.dot(basist, basis) )), basist)
+        projn = np.dot(np.dot(basis, np.linalg.inv(np.dot(basis.T, basis))), basis.T)
         # generate random points in the subspace and store in X
         for j in range(N / k):
             point = np.random.rand(n)
@@ -33,16 +33,14 @@ def calcCoherence(X, n):
     r = np.linalg.matrix_rank(X)
     maxval = 1.0
     U, S, V = np.linalg.svd(X, full_matrices=True)
-
-    Ut = np.transpose(U)
-    projn = np.dot(np.dot(U, np.linalg.inv(np.dot(Ut, U) )), Ut)
+    projn = np.dot(np.dot(U, np.linalg.inv(np.dot(U.T, U))), U.T)
 
     for i in range(n):
         e = np.zeros(n)
         e[i] = 1.0
         maxval = max(maxval, np.linalg.norm(np.dot(projn, e)))
 
-    return (n / r) * (maxval)
+    return (float(n) / r) * maxval
 
 def subspacesRefine(subspaces, k, n):
     ln = len(subspaces)
@@ -50,7 +48,7 @@ def subspacesRefine(subspaces, k, n):
         return subspaces
 
     # sort based on rank
-    subspaces.sort(key = lambda s:np.linalg.matrix_rank(s))
+    subspaces.sort(key=lambda s:np.linalg.matrix_rank(s))
 
     # add first subspace
     final = []
@@ -134,13 +132,12 @@ N = 5000
 k = 10
 r = 5
 
-# ?
 # C = 1
 # omega_size = int(C * r * N * (math.log(n) ** 2))
 omega_size = 400000
 
-p0 = omega_size/(float)(n*N)
-print "p0",p0
+p0 = omega_size/float(n*N)
+print "p0", p0
 s0 = int(3 * k * math.log(k))
 
 # coherence values approx 1 or 2 for the matrix, checked by printing
@@ -154,7 +151,6 @@ eps0 = 1 # 0.5 gives slen = 0
 
 # v0 = 0.33 # (by reverse calculating from value of s0 (ignored delta0) but doesn't work, slen = 0 ?)
 v0 = 1
-
 
 delta0 = (n ** (2 - (2 * math.sqrt(beta)))) * math.log(n)
 print "delta0", delta0
@@ -196,13 +192,11 @@ print "Actual omega size", len(set(omega)), "out of", n * N  # not all indices g
 print "Coherence", calcCoherence(Xactual, n) # not required, only for confirmation
 print "rank of X", np.linalg.matrix_rank(X)
 
-temp = 0.0
-for i in range(N):
-    temp += np.count_nonzero(X[:, i])
+temp = sum(map(np.count_nonzero, X))
 print "avg nz in cols", temp / N
 
 # get random seeds
-seeds = [random.randint(0, N - 1) for _ in xrange(s0)]
+seeds = random.sample(range(N), s0)
 
 # select seeds with more than eta0 obs
 seeds = [s for s in seeds if np.count_nonzero(X[:, s]) >= eta0]
