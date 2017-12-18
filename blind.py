@@ -1,9 +1,13 @@
 import numpy as np
 import math, random, itertools
 
-random.seed(0)
+random.seed(1)
 
-def f(u, i):
+def f(t):
+	u, i = t
+	if M[u, i] == 1:
+		return X[u, i]
+
 	l1 = []
 	Suiv = {}
 	for v in N2[i]:
@@ -34,22 +38,21 @@ def f(u, i):
 	weight = 0.0
 	for v in l1:
 		for j in l2:
-			if (v, j) in omega:
+			if M[v, j] == 1:
 				wvj = math.exp(-lam*min(Suiv[v], Siuj[j]))
 				val += wvj*(X[u, j] + X[v, i] - X[v, j])
 				weight += wvj
 	try:
-		X_hat[u, i] = val/weight
+		return val/weight
 	except:
-		X_hat[u, i] = 0.0
-
+		return 0.0
 
 m, n = 1000, 1000
-X = np.array([[i+j for j in range(n)] for i in range(m)])
-omega_size = 10000
+omega_size = 50000
 beta = 2
 lam = 0.5
 
+X = np.array([[i+j for j in range(n)] for i in range(m)])
 rows, cols = X.shape
 
 row_array = range(rows)
@@ -61,17 +64,18 @@ omega = set(zip([random.randint(0,rows-1) for _ in xrange(omega_size)],
 N1 = [set() for _ in row_array]
 N2 = [set() for _ in col_array]
 
+M = np.zeros(shape=X.shape)
+
 for x, y in omega:
 	N1[x].add(y)
 	N2[y].add(x)
+	M[x, y] = 1
 
-X_hat = np.zeros(shape=X.shape)
+all_vals = list(itertools.product(*[row_array, col_array]))
 
-from multiprocessing.dummy import Pool as ThreadPool 
+from multiprocessing import Pool as ThreadPool 
 pool = ThreadPool(4)
-pool.map(lambda t: f(t[0], t[1]), itertools.product(*[row_array, col_array]))
+ret = pool.map(f, all_vals, rows*cols/4)
 
-# for u, i in itertools.product(*[row_array, col_array]):
-	# f(X, omega, X_hat, u, i, N1, N2, beta, lam)
-
+X_hat = np.reshape(np.matrix(ret), newshape=(rows, cols))
 print np.linalg.norm(X - X_hat, ord='fro')/np.linalg.norm(X, ord='fro')
