@@ -215,11 +215,7 @@ for i in range(s0):
     if len(seed_neighbourhoods[i]) > n: # should not be needed
         seed_neighbourhoods[i] = random.sample(seed_neighbourhoods[i], n)
     else:
-        if len(seed_neighbourhoods[i]) < r:
-            # fix this?
-            seed_neighbourhoods[i] = set()
-        else:
-            seed_neighbourhoods[i] = list(seed_neighbourhoods[i])
+        seed_neighbourhoods[i] = list(seed_neighbourhoods[i])
 
     #Thinning for each neighbourhood associated with a seed
     # seed_neighbourhoods contain the neighbour column indexes to be used for a specific seed column
@@ -230,8 +226,8 @@ for i in range(s0):
 
         # mat gives individual columns of neighbourhood matrix at every run
         mat = np.zeros(shape=(l_sn, n))
-        for k in range(l_sn):
-            mat[k, :] = X[seed_neighbourhoods[i][k], :]
+        for k_ in range(l_sn):
+            mat[k_, :] = X[seed_neighbourhoods[i][k_], :]
 
         #Thinning for each neighbourhood associated with a seed
         mat = thinning(mat, seed, p0) # returning what ? indices or entire sub matrix
@@ -252,7 +248,7 @@ subspaces = subspacesRefine(subspaces, k, n)
 print "no of subspaces", len(subspaces)
 
 # choose only top k subspaces
-subspaces = subspaces[:k]
+# subspaces = subspaces[:k]
 
 # uncomment the line below to complete the matrix using original basis matrices of the k subspaces
 # subspaces = bases[:]
@@ -278,12 +274,8 @@ for j in range(N):
             val = temp
             optimalchoice = i
 
-    # s = subspaces[optimalchoice]
-    # P = np.dot(np.dot(s.T, np.linalg.inv(np.dot(s, s.T))), s)
-    # X[j, :] = np.dot(P, X[j, :])
-
-    optimal_basis = bases[optimalchoice][:, tempomega]
+    optimal_basis = subspaces[optimalchoice][:, tempomega]
     alpha = np.dot(np.dot(np.linalg.inv(np.dot(optimal_basis, optimal_basis.T)), optimal_basis), col)
-    X[j, :] = np.dot(alpha, bases[optimalchoice])
+    X[j, :] = np.dot(alpha, subspaces[optimalchoice])
 
 print np.linalg.norm(Xactual - X, ord='fro')/np.linalg.norm(Xactual, ord='fro')
