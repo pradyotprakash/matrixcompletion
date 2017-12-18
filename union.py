@@ -87,19 +87,15 @@ def thinning(neighbour_seed, seed, p0):
             j += 1
 
         Y = np.random.binomial(1, rho)
-        z = None
         if Y == 0:
-            pzrand = random.uniform(0, 1)
-            # fix this
-            pz = 0.0
+            p = []
             for j in range(q):
                 fact = math.factorial(t)/(math.factorial(j)*math.factorial(t - j))
-                pz += fact*(math.pow(p0, j))*(math.pow(1 - p0, t - j)) / (1 - rho)
-                if pz > pzrand:
-                    z = j
-                    break
+                pz = fact*(math.pow(p0, j))*(math.pow(1 - p0, t - j)) / (1 - rho)
+                p.append(pz)
+            z = np.random.choice(np.arange(q), p=p)
 
-            # Take z subset of the column and discard rest
+            # Take a z sized subset of the column and discard rest
             ct = 0
             k = 0
             subset = np.zeros(n)
@@ -123,8 +119,23 @@ r = 5
 # C = 1
 # omega_size = int(C * r * N * (math.log(n) ** 2))
 omega_size = 400000
+# observed entries
+omega = set(zip([random.randint(0, N-1) for _ in xrange(omega_size)],
+        [random.randint(0, n-1) for _ in xrange(omega_size)]))
 
-p0 = omega_size/float(n*N)
+# original basis matrices, only to be used later for confirmation
+bases = [[] for _ in xrange(k)]
+
+Xactual = generateMatrix(n, N, k, r, bases)
+X = np.zeros(shape=Xactual.shape)
+
+p0 = 0
+for o in omega:
+    X[o[0], o[1]] = Xactual[o[0], o[1]]
+
+print 'Original error: ', np.linalg.norm(Xactual - X, ord='fro')/np.linalg.norm(Xactual, ord='fro')
+
+p0 = len(omega)/float(n*N)
 print "p0", p0
 s0 = int(math.ceil(3 * k * math.log(k)))
 
@@ -159,21 +170,8 @@ t0 = math.ceil( 2 * u0 * u0 * math.log(2 * s0 * l0 * n / delta0) )
 print "t0", t0 # too large, larger than n
 t0 = min(t0, eta0 / 2)
 
-# original basis matrices, only to be used later for confirmation
-bases = [[] for _ in xrange(k)]
-
-Xactual = generateMatrix(n, N, k, r, bases)
-X = np.zeros(shape=Xactual.shape)
-
-# observed entries
-omega = zip([random.randint(0, N-1) for _ in xrange(omega_size)],
-        [random.randint(0, n-1) for _ in xrange(omega_size)])
-
-for o in omega:
-    X[o[0], o[1]] = Xactual[o[0], o[1]]
-
 print "rank of Xactual", np.linalg.matrix_rank(Xactual)
-print "Actual omega size", len(set(omega)), "out of", n * N  # not all indices generated randomly are unique
+print "Actual omega size", len(omega), "out of", n * N  # not all indices generated randomly are unique
 print "Coherence", calcCoherence(Xactual, n) # not required, only for confirmation
 print "rank of X", np.linalg.matrix_rank(X)
 
@@ -280,9 +278,12 @@ for j in range(N):
             val = temp
             optimalchoice = i
 
-    # use best fitting subspace for completion of column
-    s = subspaces[optimalchoice]
-    P = np.dot(np.dot(s.T, np.linalg.inv(np.dot(s, s.T))), s)
-    X[j, :] = np.dot(P, X[j, :])
+    # s = subspaces[optimalchoice]
+    # P = np.dot(np.dot(s.T, np.linalg.inv(np.dot(s, s.T))), s)
+    # X[j, :] = np.dot(P, X[j, :])
+
+    optimal_basis = bases[optimalchoice][:, tempomega]
+    alpha = np.dot(np.dot(np.linalg.inv(np.dot(optimal_basis, optimal_basis.T)), optimal_basis), col)
+    X[j, :] = np.dot(alpha, bases[optimalchoice])
 
 print np.linalg.norm(Xactual - X, ord='fro')/np.linalg.norm(Xactual, ord='fro')

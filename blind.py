@@ -57,8 +57,8 @@ rows, cols = X.shape
 row_array = range(rows)
 col_array = range(cols)
 
-omega = set(zip([random.randint(0,rows-1) for _ in xrange(omega_size)], 
-			[random.randint(0,cols-1) for _ in xrange(omega_size)]))
+omega = zip([random.randint(0,rows-1) for _ in xrange(omega_size)], 
+			[random.randint(0,cols-1) for _ in xrange(omega_size)])
 
 N1 = [set() for _ in row_array]
 N2 = [set() for _ in col_array]
@@ -80,7 +80,7 @@ for beta in betas:
 		start = time.time()
 		all_vals = itertools.product(*[row_array, col_array])
 		pool = Pool(4)
-		ret = list(pool.imap(f, all_vals, rows*cols/4))
+		ret = list(pool.imap(f, all_vals, rows*cols))
 		del pool
 
 		X_hat = np.reshape(np.matrix(ret), newshape=(rows, cols))
